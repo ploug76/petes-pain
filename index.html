@@ -3,7 +3,7 @@
 <meta name="theme-color" content="#1a2b40"><link rel="manifest" href="manifest.json"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Pete&#x27;s Pain">
 <style>html,body{margin:0;height:100%;overflow:hidden;background:#1a2b40;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;overscroll-behavior:none}
-canvas{position:fixed;left:0;top:0;display:block;touch-action:none}#sp{position:fixed;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}</style><script>const FORCE_UNLOCKED = true; // Peter 10/28: free until further notice. Set to false to restore the lock.
+canvas{position:fixed;left:0;top:0;display:block;touch-action:none}#sp{position:fixed;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}#dock .dk{height:44px;line-height:40px;font-size:16px;border-radius:22px;padding:0 14px}#dock .dk.ic{width:44px;padding:0}#dockHint{font-size:16px!important;padding-right:52px!important}#dockHint>#dockHintX{width:44px;height:44px;margin-top:-22px;border-radius:22px}</style><script>const FORCE_UNLOCKED = true; // Peter 10/28: free until further notice. Set to false to restore the lock.
 window.__FORCE_UNLOCKED=FORCE_UNLOCKED;</script><!--sample--><script>(()=>{try{if(window.__FORCE_UNLOCKED){window.__SAMPLE=null;try{sessionStorage.removeItem('pa_sample:'+(location.pathname.split('/')[1]||''))}catch(e){}return}const R=location.pathname.split('/')[1]||'',K='pa_sample:'+R,q=new URLSearchParams(location.search),v=q.get('sample');
 if(v==='0'||(!v&&/\/peters-arcade\//.test(document.referrer)))sessionStorage.removeItem(K);
 if(v&&v!=='0')sessionStorage.setItem(K,v.replace(/[^a-z0-9-]/gi,'').slice(0,16)||'1');
@@ -275,7 +275,7 @@ function setupPins(){for(const p of (G.pins||[]))if(!p.dead){p.dead=true}
 function B_bounce(){G.theme={sky:['#3d8fe0','#bfe6ff'],ground:'#4f9a3a',top:'#7ccf55',far:'hills',name:'Highest Bounce',tall:1};G.W=2700;
  ground([[-600,0],[3400,0]],{mu:.8});plat(-80,-6000,40,6000,'wall');
  for(let i=0;i<7;i++){tramp(400+i*300,-40,250,{bo:1.18,minOut:1150,mu:.12,cap:3000});deco.push({t:'tlegs',x:400+i*300,y:-28,w:250})}
- const hs=[-700,-1100,-1500,-1900,-2300,-2700,-3100];hs.forEach((h,i)=>target(560+i*260,h,26,bob(30,0.9+i*0.1)));
+ const hs=[-560,-760,-960,-1160,-1360,-1600,-1900];hs.forEach((h,i)=>target(560+i*260,h,26,bob(30,0.9+i*0.1)));
  G.peak=0;
 }
 function B_smash(){G.theme={sky:['#8fd3f4','#f6fbff'],ground:'#6cae4a',top:'#8fdc63',far:'hills',name:'Target Smash'};G.W=2800;
@@ -301,7 +301,7 @@ function posePete(hx,hy,ang){const c=Math.cos(ang),s=Math.sin(ang);pete.parts.fo
 function hip(){return pete.parts[2]}
 function torsoAng(){const a=pete.parts[1],b=pete.parts[2];return Math.atan2(a.y-b.y,a.x-b.x)}
 function baseZoom(){return Math.min(W/500,H/540)}
-function newShot(){G.sh={dmg:0,style:0,smash:0,tgt:0};G.fly=null;G.aim=null;G.combo=0;G.mult=1;G.lastEv=-9}
+function newShot(){G.sh={dmg:0,style:0,smash:0,tgt:0};G.hitLog=[];G.fly=null;G.aim=null;G.combo=0;G.mult=1;G.lastEv=-9}
 function startMode(id){const M=MODES.find(m=>m.id===id);if(!M)return;resetWorld();BID=0;
  G={mode:M,shot:1,total:0,scores:[],hitCd:0,slowCd:0,pan:{t:0,dur:2.2},theme:{},W:2800,tallyT:0,bw:{frame:1,roll:1,first:0,frames:[]},tgShots:0,peak:0,newBest:false,res:null};
  BUILD[id]();makePete();newShot();toAim();G.pan={t:0,dur:2.3};cam.z=baseZoom();const vw=W/cam.z;cam.x=G.W-vw/2;cam.y=80-H/cam.z/2;state='aim'}
@@ -336,10 +336,10 @@ function postStep(){
  // Pete damage
  let mi=-1,ms=0;for(let i=0;i<11;i++)if(pete.pimp[i]>ms){ms=pete.pimp[i];mi=i}
  if(ms>0&&!pete.kin)pete.touchT=0;
- if(fly&&ms>330&&G.hitCd<=0){G.hitCd=0.16;const p=pete.parts[mi],head=mi===0;pete.oofT=0.9;sfx('oof',clamp(ms/1300,.2,1));shake=Math.max(shake,Math.min(16,ms/95));
+ if(fly&&ms>330&&G.hitCd<=0){G.hitCd=0.16;const p=pete.parts[mi],head=mi===0;const HL=G.hitLog||(G.hitLog=[]),dq=HL.find(q=>simT-q.t<1.2&&Math.hypot(p.x-q.x,p.y-q.y)<50);if(dq)dq.t=simT;else{HL.push({x:p.x,y:p.y,t:simT});if(HL.length>24)HL.shift();pete.oofT=0.9;sfx('oof',clamp(ms/1300,.2,1));shake=Math.max(shake,Math.min(16,ms/95));
   if(ms>1050&&G.slowCd<=0){slow=0.45;G.slowCd=1.5}
   if(G.mode.kind==='stage'){const m=combo(),pts=Math.round((ms-280)*0.35*(head?2:1))*m;addPts('dmg',pts);floater(p.x,p.y-30,(head?'BONK! ':pick(WORDS)+' ')+'+'+fmt(pts),head?'#ff8fa3':'#fff',ms>1050?28:21)}
-  else floater(p.x,p.y-30,head?'BONK!':pick(WORDS),'#fff',20)}
+  else floater(p.x,p.y-30,head?'BONK!':pick(WORDS),'#fff',20)}}
  else if(fly&&ms>170&&G.hitCd<=0){sfx('thud',.5);G.hitCd=0.08}
  if(pete.boing){pete.boing=0;if(fly&&(!G.boingCd||simT>G.boingCd)){G.boingCd=simT+0.45;sfx('boing');if(G.mode.kind==='stage'){addPts('style',100);floater(hip().x,hip().y-50,'BOING! +100','#8ef',21)}else floater(hip().x,hip().y-50,'BOING!','#8ef',21)}}
  // prop breaks / pending booms
@@ -384,8 +384,8 @@ function nextShot(){const k=G.mode.kind;
 function finish(){const id=G.mode.id;let fin=G.total;if(G.mode.kind==='bounce')fin=Math.round(G.peak*10)+G.scores.reduce((a,b)=>a,0)*0+targets.filter(t=>t.hit).length*200;
  G.final=fin;const old=+save.best[id]||0;G.newBest=fin>old;if(G.newBest)save.best[id]=fin;persist();state='result';sfx('fanfare')}
 function settleCheck(dt){if(state!=='fly')return;const F=G.fly;let v=0;for(const p of pete.parts)v+=Math.hypot(p.x-p.px,p.y-p.py);v=v/11/DT;
- if(v<38&&!pete.grab)F.still+=dt;else F.still=0;const h=hip();
- if(h.x<-400||h.x>G.W+500||h.y>700)endShot('Out of bounds!');else if(F.still>0.9)endShot();else if(F.t>(G.mode.kind==='bounce'?11:15))endShot()}
+ if(v<38&&!pete.grab)F.still+=dt;else F.still=0;const h=hip();if(!F.an||pete.grab||Math.hypot(h.x-F.an.x,h.y-F.an.y)>40)F.an={x:h.x,y:h.y,t:F.t};
+ if(h.x<-400||h.x>G.W+500||h.y>700)endShot('Out of bounds!');else if(F.still>0.9||F.t-F.an.t>2.5)endShot();else if(F.t>(G.mode.kind==='bounce'?11:15))endShot()}
 function update(dt){frameT+=dt;if(pete){pete.oofT-=dt;pete.really-=dt}
  if(state==='aim'||state==='fly'||state==='tally'){
   if(G.pan){G.pan.t+=dt;if(G.pan.t>G.pan.dur)G.pan=null}
@@ -601,7 +601,7 @@ function drawPick(){const th={sky:['#3a2a6e','#7a4fb0'],far:'alley'};drawSky(th)
   txt(m.name,x+cw/2,y+(big?74:52),Math.min(19,cw/9.5),'#fff');
   if(big&&ch>150){const ls=wrap(m.desc,cw-16,16);ls.slice(0,2).forEach((l,j)=>{ctx.font='16px '+FONT;ctx.fillStyle='#cfd8ff';ctx.fillText(l,x+cw/2,y+100+j*19)})}
   txt(lk?'🔒 Full game':(save.best[m.id]?'Best '+fmt(save.best[m.id]):(m.kind==='stage'?'Sandbox · 3 launches':'Mini-mode')),x+cw/2,y+ch-18,16,lk?'#ccc':'#ffe14a')})}
-function drawHelp(){drawSky({sky:['#1d3b6e','#4a7bd0'],far:'hills'});setScreen();const pw=Math.min(W-24,520),ph=Math.min(H-SAFE.t-SAFE.b-24,640),px=W/2-pw/2,py=Math.max(SAFE.t+12,H/2-ph/2);panel(px,py,pw,ph);
+function drawHelp(){drawSky({sky:['#1d3b6e','#4a7bd0'],far:'hills'});setScreen();const pw=Math.min(W-24,W>H?760:520),ph=Math.min(H-SAFE.t-SAFE.b-24,640),px=W/2-pw/2,py=Math.max(SAFE.t+12,H/2-ph/2);panel(px,py,pw,ph);
  txt('How to play',W/2,py+30,24,'#ffd23a');const L=['🎯 Drag back from anywhere on the screen to stretch the slingshot. Let go to launch Pete.','✋ While Pete flies, tap the screen near a glowing yellow ring to GRAB it. Tap again to let go and swing!',
   '💥 Points for every oof, flips, airtime, bounces, smashed stuff, knocked-over things, chain reactions and targets. Hits close together build a COMBO.','🎳 Bowling, 🦘 Highest Bounce and 🎯 Target Smash are quick mini-modes.','Pete is a crash-test dummy. He is fine. Really.'];
  let y=py+64;const fs=W<380?16:17;for(const s of L){const ls=wrap(s,pw-32,fs);for(const l of ls){ctx.font=(fs)+'px '+FONT;ctx.fillStyle='#fff';ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText(l,px+16,y);y+=fs+6}y+=8}
@@ -619,10 +619,10 @@ function drawHUD(){setScreen();const k=G.mode.kind,t=SAFE.t+8;
  if(state==='tally'&&G.tally){const pw=Math.min(W-40,340),lines=G.tally.lines,ph=86+lines.length*26,px=W/2-pw/2,py=t+(W>H?56:110);panel(px,py,pw,ph);
   txt(k==='bowl'?(G.tally.lines[0][0]==='STRIKE!'?'STRIKE!':'Roll result'):'Launch '+G.shot+' result',W/2,py+24,19,'#ffd23a');lines.forEach((l,i)=>{txt(l[0],px+16,py+52+i*26,17,'#fff','left',false);txt(typeof l[1]==='number'?fmt(l[1]):l[1],px+pw-16,py+52+i*26,17,'#fff','right',false)});
   txt('+'+fmt(G.tally.pts),W/2,py+ph-20,22,'#7CFC9A')}}
-function drawPause(){setScreen();ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(0,0,W,H);const pw=Math.min(W-40,320),ph=300,px=W/2-pw/2,py=H/2-ph/2;panel(px,py,pw,ph);txt('Paused',W/2,py+34,26,'#ffd23a');
+function drawPause(){setScreen();menuBtns=menuBtns.filter(b=>b.id!=='pause'&&b.id!=='mute');ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(0,0,W,H);const pw=Math.min(W-40,320),ph=300,px=W/2-pw/2,py=H/2-ph/2;panel(px,py,pw,ph);txt('Paused',W/2,py+34,26,'#ffd23a');
  btn(px+20,py+70,pw-40,52,'▶ Resume',()=>{state=prevState;sfx('click')},{id:'resume'});btn(px+20,py+136,pw-40,52,'↻ Restart',()=>{startMode(G.mode.id)},{id:'restart',bg:'#7fd3ff'});
- btn(px+20,py+202,pw-40,52,'☰ Menu',()=>{state='pick';G=null;pete=null;sfx('click')},{id:'menu',bg:'#fff'});muteBtn(W-SAFE.r-50,SAFE.t+8)}
-function drawResult(){setScreen();ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(0,0,W,H);const k=G.mode.kind,pw=Math.min(W-24,400);
+ btn(px+20,py+202,pw-40,52,'☰ Menu',()=>{state='pick';G=null;pete=null;sfx('click')},{id:'menu',bg:'#fff'});muteBtn(W-SAFE.r-100,SAFE.t+8)}
+function drawResult(){setScreen();menuBtns=menuBtns.filter(b=>b.id!=='pause');ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(0,0,W,H);const k=G.mode.kind,pw=Math.min(W-24,400);
  const rows=k==='bowl'?G.bw.frames.map((f,i)=>['Frame '+(i+1),f]):G.scores.map((s,i)=>[(k==='bounce'?'Launch ':'Launch ')+(i+1),fmt(s)]);
  if(k==='bounce')rows.push(['Best height',Math.round(G.peak)+' ft']);
  const ph=Math.min(H-SAFE.t-SAFE.b-16,rows.length*26+284),px=W/2-pw/2,py=Math.max(SAFE.t+8,H/2-ph/2);panel(px,py,pw,ph);
