@@ -422,8 +422,9 @@ function drawSky(th){setScreen();const g=ctx.createLinearGradient(0,0,0,H);g.add
  ctx.fillStyle='rgba(255,255,255,.75)';for(let i=0;i<7;i++){const x=((hash(i)*1600-cam.x*z*0.12)%1600+1600)%1600-200,y=gy-260*z-hash(i+9)*500*z-(th.tall?(-cam.y*z*0.1):0);if(th.far==='alley')break;
   ctx.beginPath();ctx.ellipse(x,y,60,22,0,0,7);ctx.ellipse(x+40,y-12,44,24,0,0,7);ctx.ellipse(x-38,y-6,36,18,0,0,7);ctx.fill()}
  const off=-cam.x*z*0.3;
- if(th.far==='city'){for(let i=0;i<40;i++){const w=(60+hash(i)*70)*z,h=(160+hash(i+3)*380)*z,x=((i*110*z+off)%(4400*z)+4400*z)%(4400*z)-200;ctx.fillStyle=i%2?'#9db8cc':'#8aa8be';ctx.fillRect(x,gy-h,w,h);
-   ctx.fillStyle='rgba(255,255,230,.55)';for(let yy=gy-h+12*z;yy<gy-20*z;yy+=26*z)for(let xx=x+8*z;xx<x+w-12*z;xx+=18*z)if(hash(xx*0.37+yy*0.11)>0.45)ctx.fillRect(xx,yy,8*z,12*z)}}
+ if(th.far==='city'){for(let i=0;i<40;i++){const w=(60+hash(i)*70)*z,h=(160+hash(i+3)*380)*z,x=Math.round((((i*110*z+off)%(4400*z)+4400*z)%(4400*z)-200)*DPR)/DPR;ctx.fillStyle=i%2?'#9db8cc':'#8aa8be';ctx.fillRect(x,gy-h,w,h);
+   // lit windows: pattern seeded by building/row/column (not screen position) so it stays fixed while the camera pans/zooms; building x snapped to device pixels so it slides smoothly
+   ctx.fillStyle='rgba(255,255,230,.55)';for(let yy=gy-h+12*z,r=0;yy<gy-20*z;yy+=26*z,r++)for(let xx=x+8*z,c=0;xx<x+w-12*z;xx+=18*z,c++)if(hash(i*53.7+r*7.13+c*1.91+.5)>0.45)ctx.fillRect(xx,yy,8*z,12*z)}}
  else if(th.far==='hills'){ctx.fillStyle='#8fc77a';ctx.beginPath();ctx.moveTo(0,H);for(let x=0;x<=W;x+=10)ctx.lineTo(x,gy-120*z-Math.sin((x-off)*0.004)*60*z-Math.sin((x-off)*0.011)*25*z);ctx.lineTo(W,H);ctx.fill();
   ctx.fillStyle='#6fb35c';ctx.beginPath();ctx.moveTo(0,H);for(let x=0;x<=W;x+=10)ctx.lineTo(x,gy-50*z-Math.sin((x-off*1.6)*0.006+2)*40*z);ctx.lineTo(W,H);ctx.fill()}
  else if(th.far==='cranes'){ctx.fillStyle='rgba(160,95,45,.22)';for(let i=0;i<12;i++){const x=((i*420*z+off)%(5000*z)+5000*z)%(5000*z)-300,h=(300+hash(i)*300)*z;ctx.fillRect(x,gy-h,90*z,h);
