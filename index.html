@@ -614,7 +614,7 @@ function drawPick(){const th={sky:['#3a2a6e','#7a4fb0'],far:'alley'};drawSky(th)
   txt(lk?'🔒 Full game':(save.best[m.id]?'Best '+fmt(save.best[m.id]):(m.kind==='stage'?'Sandbox · 3 launches':'Mini-mode')),x+cw/2,y+ch-18,16,lk?'#ccc':'#ffe14a')})}
 function drawHelp(){drawSky({sky:['#1d3b6e','#4a7bd0'],far:'hills'});setScreen();const pw=Math.min(W-24,W>H?760:520),ph=Math.min(H-SAFE.t-SAFE.b-24,640),px=W/2-pw/2,py=Math.max(SAFE.t+12,H/2-ph/2);panel(px,py,pw,ph);
  txt('How to play',W/2,py+30,24,'#ffd23a');const L=['🎯 Drag back from anywhere on the screen to stretch the slingshot. Let go to launch Pete.','✋ While Pete flies, tap the screen near a glowing yellow ring to GRAB it. Tap again to let go and swing!',
-  '💥 Points for every oof, flips, airtime, bounces, smashed stuff, knocked-over things, chain reactions and targets. Hits close together build a COMBO.','🎳 Bowling, 🦘 Highest Bounce and 🎯 Target Smash are quick mini-modes.','Pete is a crash-test dummy. He is fine. Really.'];
+  '💥 Points for every oof, flips, airtime, bounces, smashed stuff, knocked-over things, chain reactions and targets. Hits close together build a COMBO.','🎳 Bowling, 🦘 Highest Bounce and 🎯 Target Smash are quick mini-modes.','🎮 Controller: pull the stick back to aim, A launches and grabs, Start pauses, B goes back.','Pete is a crash-test dummy. He is fine. Really.'];
  let y=py+64;const fs=W<380?16:17;for(const s of L){const ls=wrap(s,pw-32,fs);for(const l of ls){ctx.font=(fs)+'px '+FONT;ctx.fillStyle='#fff';ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText(l,px+16,y);y+=fs+6}y+=8}
  btn(W/2-90,Math.min(py+ph-62,y+6),180,50,'Got it!',()=>{state='title';save.seenHelp=true;persist();sfx('click')},{id:'gotit'})}
 function drawHUD(){setScreen();const k=G.mode.kind,t=SAFE.t+8;
@@ -939,4 +939,43 @@ window.PALB=api})();
 #palbTabs button{min-height:48px!important;font-size:16px!important}
 #palbList li{min-height:30px;height:auto!important;font-size:16px!important}
 </style>
+<!-- gamepad:start -->
+<script src="gamepad.js?v=2"></script>
+<script>
+/* Pete's Pain: stick pulls the slingshot (like dragging back), A launches / grabs / continues */
+(function(){
+var PLAY={aim:1,fly:1,tally:1};
+function ov(){return !!document.querySelector('#palbOv.on,#smpLock.on')}
+function launchNow(){if(!G||!G.aim)return false;var v=aimVec();if(!v||v.pow<=0.12)return false;G.aim=null;launch(v.ux*v.v,v.uy*v.v);return true}
+function act(p){if(!p||ov())return;
+ if(state==='aim'){if(G.pan){G.pan=null;return}launchNow();return}
+ if(state==='fly'){tryGrab();return}
+ if(state==='tally'&&G.tallyT>0.5){nextShot();return}}
+GamepadSupport.init({
+ keys:{a:act,x:function(p){if(p&&state==='fly')tryGrab()},y:function(p){if(p&&state==='fly')tryGrab()},
+  b:function(){},left:function(){},right:function(){},up:function(){},down:function(){},
+  start:function(p){if(p&&PLAY[state]){prevState=state;state='pause'}},
+  back:function(p){if(p){save.mute=!save.mute;persist()}}},
+ noRepeat:['a','x','y','start','back'],repeat:false,
+ ignoreSel:'#dock,#mute,#inst,#ios,.tb,#dockHint',
+ menu:function(){return ov()||!PLAY[state];},
+ items:GamepadSupport.list(function(){return ov()?[]:menuBtns.slice();},{scale:1}),
+ isPaused:function(){return state==='pause'},
+ pause:function(){if(PLAY[state]){prevState=state;state='pause'}},
+ back:function(){if(ov())return false;
+  if(state==='pause'){state=prevState;return true}
+  if(state==='help'){state='title';return true}
+  var b=menuBtns.find(function(q){return q.id==='back'||q.id==='rmenu'});if(b){b.cb();return true}
+  return true;},
+ onFrame:function(r,mode){if(mode!=='play'||state!=='aim'||!G||G.pan||ov())return;
+  var cx=innerWidth/2,cy=innerHeight/2,full=Math.min(W,H)*0.34;
+  var mx=r.ax.x,my=r.ax.y,m=Math.hypot(mx,my);
+  if(m>0.2){G.aim={sx:cx,sy:cy,x:cx+mx*full*1.02,y:cy+my*full*1.02,pow:0};return}
+  var dx=(r.dp.right?1:0)-(r.dp.left?1:0),dy=(r.dp.down?1:0)-(r.dp.up?1:0);
+  if(dx||dy){if(!G.aim)G.aim={sx:cx,sy:cy,x:cx,y:cy,pow:0};G.aim.x=Math.max(cx-full,Math.min(cx+full,G.aim.x+dx*full*0.025));G.aim.y=Math.max(cy-full,Math.min(cy+full,G.aim.y+dy*full*0.025));}},
+ hint:{text:'🎮 Controller: pull the stick back to aim · A launch / grab · Start pause',when:function(){return state==='title'&&!ov()}}
+});
+})();
+</script>
+<!-- gamepad:end -->
 </body></html>
